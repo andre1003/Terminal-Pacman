@@ -34,12 +34,12 @@ int getc() {
     return c;
 }
 
-void print_map(int matrix[10][10]) {
-    for(int i = 0; i < 10; i++) {
-        for(int j = 0; j < 10; j++) {
-            if(matrix[i][j] == 1) printf(" %c", 35);
+void print_map(int matrix[21][19]) {
+    for(int i = 0; i < 21; i++) {
+        for(int j = 0; j < 19; j++) {
+            if(matrix[i][j] == 1) printf("\033[1;34m %c\033[0m", 35);
             else if(matrix[i][j] == 0) cout << "  ";
-            else if(matrix[i][j] == 2) printf(" %c", 64);
+            else if(matrix[i][j] == 2) printf("\033[1;33m %c\033[0m", 64);
             else if(matrix[i][j] == 3) printf("<3");
             else if(matrix[i][j] == 4) printf(" +");
             else if(matrix[i][j] == 5) printf(" *");
@@ -48,22 +48,70 @@ void print_map(int matrix[10][10]) {
     }
 }
 
+void movement(int matrix[21][19], int *x, int *y, int *oldx, int *oldy, int *life, int *score) {
+    int command;
+    command = getc();
+
+    system("clear");
+
+    if(command == 'w' || command == 'W') *y-=1;
+    else if(command == 'a' || command == 'A') *x-=1;
+    else if(command == 's' || command == 'S') *y+=1;
+    else if(command == 'd' || command == 'D') *x+=1;
+    else if(command == 27) exit(0);
+
+    if(matrix[*y][*x] == 0) {
+        matrix[*oldy][*oldx] = 0;
+        matrix[*y][*x] = 2;
+    }
+    else if(matrix[*y][*x] == 3) {
+        matrix[*oldy][*oldx] = 0;
+        matrix[*y][*x] = 2;
+        *life+=1;
+    }
+    else if(matrix[*y][*x] == 4) {
+        *life-=1;
+        *x = *oldx;
+        *y = *oldy;
+    }
+    else if(matrix[*y][*x] == 5) {
+        matrix[*oldy][*oldx] = 0;
+        matrix[*y][*x] = 2;
+        *score+=1;
+    }
+    else {
+        *x = *oldx;
+        *y = *oldy;
+    }
+}
+
 int main() {
-    int x = 1, y = 1, oldx, oldy, life = 1, score = 0;
+    int x = 9, y = 15, oldx, oldy, life = 1, score = 0;
     int botx = 6, boty = 4, oldbotx, oldboty, decision = 0;
     bool bot_over_a_score = false;
-    
-    int matrix[10][10] = {
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 2, 0, 0, 0, 0, 0, 0, 0, 1,
-        1, 0, 0, 5, 5, 5, 5, 0, 0, 1,
-        1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-        1, 0, 0, 0, 0, 0, 4, 0, 0, 1,
-        1, 0, 0, 0, 0, 0, 3, 0, 0, 1,
-        1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-        1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-        1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+
+    int matrix[21][19] = {
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 5, 5, 5, 5, 5, 5, 5, 5, 1, 5, 5, 5, 5, 5, 5, 5, 5, 1,
+        1, 5, 1, 1, 5, 1, 1, 1, 5, 1, 5, 1, 1, 1, 5, 1, 1, 5, 1,
+        1, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 1,
+        1, 5, 1, 1, 5, 1, 5, 1, 1, 1, 1, 1, 5, 1, 5, 1, 1, 5, 1,
+        1, 5, 5, 5, 5, 1, 5, 5, 5, 1, 5, 5, 5, 1, 5, 5, 5, 5, 1,
+        1, 1, 1, 1, 5, 1, 1, 1, 0, 1, 0, 1, 1, 1, 5, 1, 1, 1, 1,
+        1, 1, 1, 1, 5, 1, 0, 0, 0, 0, 0, 0, 0, 1, 5, 1, 1, 1, 1,
+        1, 1, 1, 1, 5, 1, 0, 0, 0, 0, 0, 0, 0, 1, 5, 1, 1, 1, 1,
+        1, 5, 5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 5, 5, 5, 1,
+        1, 1, 1, 1, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 1, 1, 1, 1,
+        1, 1, 1, 1, 5, 1, 0, 0, 0, 0, 0, 0, 0, 1, 5, 1, 1, 1, 1,
+        1, 1, 1, 1, 5, 1, 0, 1, 1, 1, 1, 1, 0, 1, 5, 1, 1, 1, 1,
+        1, 5, 5, 5, 5, 5, 5, 5, 5, 1, 5, 5, 5, 5, 5, 5, 5, 5, 1,
+        1, 5, 1, 1, 5, 1, 1, 1, 5, 1, 5, 1, 1, 1, 5, 1, 1, 5, 1,
+        1, 5, 5, 1, 5, 5, 5, 5, 5, 2, 5, 5, 5, 5, 5, 1, 5, 5, 1,
+        1, 1, 5, 1, 5, 5, 5, 1, 1, 1, 1, 1, 5, 5, 5, 1, 5, 1, 1,
+        1, 5, 5, 5, 5, 1, 5, 5, 5, 1, 5, 5, 5, 1, 5, 5, 5, 5, 1,
+        1, 5, 1, 1, 1, 1, 1, 1, 5, 1, 5, 1, 1, 1, 1, 1, 1, 5, 1,
+        1, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
     };
 
     srand(time(NULL));
@@ -78,77 +126,46 @@ int main() {
         cout << "Lifes: " << life << endl << "Score: " << score << endl;
 
         // User part
-
-        int command;
-        command = getc();
-
-        system("clear");
-
-        if(command == 'w' || command == 'W') y--;
-        else if(command == 'a' || command == 'A') x--;
-        else if(command == 's' || command == 'S') y++;
-        else if(command == 'd' || command == 'D') x++;
-        else if(command == 27) break;
-
-        if(matrix[y][x] == 0) {
-            matrix[oldy][oldx] = 0;
-            matrix[y][x] = 2;
-        }
-        else if(matrix[y][x] == 3) {
-            matrix[oldy][oldx] = 0;
-            matrix[y][x] = 2;
-            life++;
-        }
-        else if(matrix[y][x] == 4) {
-            life--;
-            x = oldx;
-            y = oldy;
-        }
-        else if(matrix[y][x] == 5) {
-            matrix[oldy][oldx] = 0;
-            matrix[y][x] = 2;
-            score++;
-        }
-        else {
-            x = oldx;
-            y = oldy;
-        }
+        movement(matrix, &x, &y, &oldx, &oldy, &life, &score);
 
         // Bot part (very random!!!)
 
-        decision = 1 + rand() % 4;
+        // decision = 1 + rand() % 4;
         
-        if(decision == 1) botx++;
-        else if(decision == 2) botx--;
-        else if(decision == 3) boty++;
-        else boty--;
+        // if(decision == 1) botx++;
+        // else if(decision == 2) botx--;
+        // else if(decision == 3) boty++;
+        // else boty--;
 
-        if(matrix[boty][botx] == 0) {
-            if(bot_over_a_score) matrix[oldboty][oldbotx] = 5;
-            else matrix[oldboty][oldbotx] = 0;
-            matrix[boty][botx] = 4;
-            bot_over_a_score = false;
-        }
-        else if(matrix[boty][botx] == 2) {
-            life--;
-            bot_over_a_score = false;
-        }
-        else if(matrix[boty][botx] == 5) {
-            if(bot_over_a_score) matrix[oldboty][oldbotx] = 5;
-            else matrix[oldboty][oldbotx] = 0;
-            matrix[boty][botx] = 4;
-            bot_over_a_score = true;
-        }
-        else {
-            botx = oldbotx;
-            boty = oldboty;
-            bot_over_a_score = false;
-        }
+        // if(matrix[boty][botx] == 0) {
+        //     if(bot_over_a_score) matrix[oldboty][oldbotx] = 5;
+        //     else matrix[oldboty][oldbotx] = 0;
+        //     matrix[boty][botx] = 4;
+        //     bot_over_a_score = false;
+        // }
+        // else if(matrix[boty][botx] == 2) {
+        //     life--;
+        //     bot_over_a_score = false;
+        // }
+        // else if(matrix[boty][botx] == 5) {
+        //     if(bot_over_a_score) matrix[oldboty][oldbotx] = 5;
+        //     else matrix[oldboty][oldbotx] = 0;
+        //     matrix[boty][botx] = 4;
+        //     bot_over_a_score = true;
+        // }
+        // else {
+        //     botx = oldbotx;
+        //     boty = oldboty;
+        //     bot_over_a_score = false;
+        // }
 
 
         if(life <= 0) {
             cout << "Game Over!" << endl;
             exit(0);
+        }
+        else if(score == 158) {
+            cout << "Congratulations, you win!" << endl;
         }
     }
 }
