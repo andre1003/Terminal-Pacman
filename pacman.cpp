@@ -4,6 +4,7 @@
 #include "unistd.h"
 #include "cstdlib"
 #include "ctime"
+#include "characters.cpp"
 
 using namespace std;
 
@@ -85,9 +86,46 @@ void movement(int matrix[21][19], int *x, int *y, int *oldx, int *oldy, int *lif
     }
 }
 
+void ghost_movement(int matrix[21][19], int *x, int *y, int *oldx, int *oldy, int *direction, bool *over_score) {
+    if(*direction == 1) *x+=1;
+    else if(*direction == 2) *x-=1;
+    else if(*direction == 3) *y+=1;
+    else *y-=1;
+
+    if(matrix[*y][*x] == 0) {
+        if(*over_score) matrix[*oldy][*oldx] = 5;
+        else matrix[*oldy][*oldx] = 0;
+        matrix[*y][*x] = 4;
+        *over_score = false;
+    }
+    else if(matrix[*y][*x] == 2) {
+        //life--;
+        *over_score = false;
+    }
+    else if(matrix[*y][*x] == 5) {
+        if(*over_score) matrix[*oldy][*oldx] = 5;
+        else matrix[*oldy][*oldx] = 0;
+        matrix[*y][*x] = 4;
+        *over_score = true;
+    }
+    else {
+        *x = *oldx;
+        *y = *oldy;
+        *direction+=1;
+        if(*direction > 4) *direction = 1;
+        *over_score = false;
+    }
+}
+
 int main() {
-    int x = 9, y = 15, oldx, oldy, life = 1, score = 0;
-    int botx = 6, boty = 4, oldbotx, oldboty, decision = 0;
+    player pacman;
+    pacman.init(9, 15, 1);
+
+    ghost g1;
+    g1.init(9, 9, 1);
+
+    //int x = 9, y = 15, oldx, oldy, life = 1, score = 0;
+    //int *x = 6, *y = 4, *oldx, *oldy, *direction = 0;
     bool bot_over_a_score = false;
 
     int matrix[21][19] = {
@@ -100,7 +138,7 @@ int main() {
         1, 1, 1, 1, 5, 1, 1, 1, 0, 1, 0, 1, 1, 1, 5, 1, 1, 1, 1,
         1, 1, 1, 1, 5, 1, 0, 0, 0, 0, 0, 0, 0, 1, 5, 1, 1, 1, 1,
         1, 1, 1, 1, 5, 1, 0, 0, 0, 0, 0, 0, 0, 1, 5, 1, 1, 1, 1,
-        1, 5, 5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 5, 5, 5, 1,
+        1, 5, 5, 5, 5, 0, 0, 0, 0, 4, 0, 0, 0, 0, 5, 5, 5, 5, 1,
         1, 1, 1, 1, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 1, 1, 1, 1,
         1, 1, 1, 1, 5, 1, 0, 0, 0, 0, 0, 0, 0, 1, 5, 1, 1, 1, 1,
         1, 1, 1, 1, 5, 1, 0, 1, 1, 1, 1, 1, 0, 1, 5, 1, 1, 1, 1,
@@ -119,53 +157,42 @@ int main() {
     while(true) {
         system("clear");
 
-        oldx = x; oldy = y;
-        oldbotx = botx; oldboty = boty;
+        pacman.update();
+        g1.update();
 
         print_map(matrix);
+        
+        int x = pacman.get_x(), y = pacman.get_y(), oldx = pacman.get_oldx(), oldy = pacman.get_oldy();
+        int life = pacman.get_life(), score = pacman.get_score();
+        
         cout << "Lifes: " << life << endl << "Score: " << score << endl;
-
+        
         // User part
         movement(matrix, &x, &y, &oldx, &oldy, &life, &score);
 
+        pacman.save_changes(x, y, oldx, oldy, life, score);
+
         // Bot part (very random!!!)
 
-        // decision = 1 + rand() % 4;
-        
-        // if(decision == 1) botx++;
-        // else if(decision == 2) botx--;
-        // else if(decision == 3) boty++;
-        // else boty--;
+        x = g1.get_x(); y = g1.get_y(); oldx = g1.get_oldx(); oldy = g1.get_oldy();
+        int direction = g1.get_direction();
+        bool over_score = g1.get_over_score();
 
-        // if(matrix[boty][botx] == 0) {
-        //     if(bot_over_a_score) matrix[oldboty][oldbotx] = 5;
-        //     else matrix[oldboty][oldbotx] = 0;
-        //     matrix[boty][botx] = 4;
-        //     bot_over_a_score = false;
-        // }
-        // else if(matrix[boty][botx] == 2) {
-        //     life--;
-        //     bot_over_a_score = false;
-        // }
-        // else if(matrix[boty][botx] == 5) {
-        //     if(bot_over_a_score) matrix[oldboty][oldbotx] = 5;
-        //     else matrix[oldboty][oldbotx] = 0;
-        //     matrix[boty][botx] = 4;
-        //     bot_over_a_score = true;
-        // }
-        // else {
-        //     botx = oldbotx;
-        //     boty = oldboty;
-        //     bot_over_a_score = false;
-        // }
+        ghost_movement(matrix, &x, &y, &oldx, &oldy, &direction, &over_score);
+
+        g1.save_changes(x, y, oldx, oldy, direction, over_score);
+
+        // *direction = 1 + rand() % 4;
 
 
         if(life <= 0) {
             cout << "Game Over!" << endl;
             exit(0);
         }
-        else if(score == 158) {
+        
+        if(score == 158) {
             cout << "Congratulations, you win!" << endl;
+            exit(0);
         }
     }
 }
