@@ -113,6 +113,7 @@ class player : public character {
 class ghost : public character {
     public:
         int direction;
+        int steps;
         bool over_score;
 
     public:
@@ -123,19 +124,25 @@ class ghost : public character {
             set_oldy(y);
             this->direction = direction;
             this->over_score = false;
+            this->steps = 0;
         }
 
-        void save_changes(int x, int y, int oldx, int oldy, int direction, bool over_score) {
+        void save_changes(int x, int y, int oldx, int oldy, int direction, bool over_score, int steps) {
             set_x(x);
             set_y(y);
             set_oldx(oldx);
             set_oldy(oldy);
             this->direction = direction;
             this->over_score = over_score;
+            this->steps = steps;
         }
 
         int get_direction() {
             return this->direction;
+        }
+
+        int get_steps() {
+            return this->steps;
         }
 
         bool get_over_score() {
