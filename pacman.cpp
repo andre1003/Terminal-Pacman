@@ -5,7 +5,6 @@
 #include "cstdlib"
 #include "ctime"
 #include "characters.cpp"
-#include "maps.cpp"
 
 using namespace std;
 
@@ -119,7 +118,8 @@ void ghost_movement(int matrix[21][19], int *x, int *y, int *oldx, int *oldy, in
         *over_score = false;
     }
     else if(matrix[*y][*x] == 2) { // Pacman
-        //life--;
+        *x = *oldx;
+        *y = *oldy;
         *over_score = false;
     }
     else if(matrix[*y][*x] == 5) { // Score (doesn't destroy it)
@@ -139,6 +139,21 @@ void ghost_movement(int matrix[21][19], int *x, int *y, int *oldx, int *oldy, in
 
         *steps = 0;
     }
+}
+
+void clear() {
+    #ifdef WINDOWS
+        system("cls");
+    #else
+        system("clear");
+    #endif
+}
+
+void menu() {
+    clear();
+
+    cout << "============ TERMINAL PACMAN ============\n\n" << "Commands:\nW - Up\nS - Down\nA - Left\nD - Right\nEsc - Exit\n\nPress any key to continue...";
+    getchar();
 }
 
 
@@ -182,9 +197,12 @@ int main() {
     // Setting srand
     srand(time(NULL));
 
+    // Show menu
+    menu();
+
     // Loop
     while(true) {
-        system("clear");
+        clear();
 
         // Update
 
@@ -240,11 +258,12 @@ int main() {
         // Life and Score
 
         if(life <= 0) {
+            clear();
             cout << "Game Over!" << endl;
             exit(0);
         }
         
-        if(score == 158) {
+        if(score == 157) {
             cout << "Congratulations, you win!" << endl;
             exit(0);
         }
